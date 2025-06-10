@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FloatingChat Settings</title>
+    <style>
+        body {
+            width: 320px;
+            min-height: 200px;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            color: #374151;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .header p {
+            margin: 4px 0 0 0;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 16px;
+        }
+
+        .status-section {
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border-left: 4px solid #10b981;
+        }
+
+        .status-section.inactive {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .status-section.unsupported {
+            border-left-color: #f59e0b;
+            background: #fffbeb;
+        }
+
+        .status-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .status-text {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .platform-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .platform-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .platform-icon.chatgpt {
+            background: linear-gradient(135deg, #10a37f, #1a73e8);
+        }
+
+        .platform-icon.claude {
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+        }
+
+        .platform-icon.gemini {
+            background: linear-gradient(135deg, #4285f4, #34a853);
+        }
+
+        .platform-icon.deepseek {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .platform-name {
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #d1d5db;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #10b981;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        .action-buttons {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .footer {
+            padding: 12px 16px;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            font-size: 11px;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        .footer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #6b7280;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #1f2937;
+                color: #d1d5db;
+            }
+
+            .status-section {
+                background: #374151;
+                color: #d1d5db;
+            }
+
+            .status-section.inactive {
+                background: #450a0a;
+            }
+
+            .status-section.unsupported {
+                background: #451a03;
+            }
+
+            .btn-secondary {
+                background: #374151;
+                color: #d1d5db;
+            }
+
+            .btn-secondary:hover {
+                background: #4b5563;
+            }
+
+            .footer {
+                background: #374151;
+                border-top-color: #4b5563;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FloatingChat</h1>
+        <p>AI Platform Enhancer</p>
+    </div>
+
+    <div class="content">
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            Checking status...
+        </div>
+
+        <div id="main-content" style="display: none;">
+            <div id="status-section" class="status-section">
+                <div class="status-title">Extension Status</div>
+                <div class="status-text" id="status-text">Loading...</div>
+                <div id="platform-info" class="platform-info" style="display: none;">
+                    <div id="platform-icon" class="platform-icon"></div>
+                    <div id="platform-name" class="platform-name"></div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <span class="control-label">Enable Floating Window</span>
+                    <div id="toggle-extension" class="toggle-switch"></div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="refresh-btn" class="btn btn-secondary">Refresh</button>
+                <button id="reset-btn" class="btn btn-secondary">Reset Position</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div>Version 1.0.0 | <a href="#" id="help-link">Help</a></div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html> 

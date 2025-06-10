@@ -1,0 +1,476 @@
+/* FloatingChat - AI Platform Enhancer Styles */
+/* Elegant, minimalistic design inspired by Apple's design principles */
+
+.floating-chat-window {
+  position: fixed;
+  z-index: 999999;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 250px;
+  min-height: 200px;
+  max-width: 80vw;
+  max-height: 80vh;
+}
+
+/* Dark mode detection for different platforms */
+@media (prefers-color-scheme: dark) {
+  .floating-chat-window {
+    background: rgba(30, 30, 30, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+  }
+}
+
+/* Platform-specific dark mode overrides */
+.floating-chat-window.platform-chatgpt {
+  /* ChatGPT dark mode detection */
+}
+
+.floating-chat-window.platform-claude {
+  /* Claude dark mode detection */
+}
+
+.floating-chat-window.platform-gemini {
+  /* Gemini dark mode detection */
+}
+
+.floating-chat-window.platform-deepseek {
+  /* DeepSeek dark mode detection */
+}
+
+/* Dark mode for ChatGPT */
+html[data-theme="dark"] .floating-chat-window.platform-chatgpt,
+[data-theme="dark"] .floating-chat-window.platform-chatgpt {
+  background: rgba(25, 25, 25, 0.95);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+/* Dark mode for Claude */
+.dark .floating-chat-window.platform-claude,
+[data-theme="dark"] .floating-chat-window.platform-claude {
+  background: rgba(25, 25, 25, 0.95);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+/* Animation for new content */
+.floating-chat-window.new-content {
+  transform: scale(1.02);
+  box-shadow: 0 15px 40px rgba(0, 100, 255, 0.2);
+}
+
+.floating-chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(248, 249, 250, 0.8);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  cursor: move;
+  user-select: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-chat-header {
+    background: rgba(40, 40, 40, 0.8);
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+html[data-theme="dark"] .floating-chat-header,
+[data-theme="dark"] .floating-chat-header,
+.dark .floating-chat-header {
+  background: rgba(40, 40, 40, 0.8);
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.floating-chat-title {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  gap: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-chat-title {
+    color: #d1d5db;
+  }
+}
+
+html[data-theme="dark"] .floating-chat-title,
+[data-theme="dark"] .floating-chat-title,
+.dark .floating-chat-title {
+  color: #d1d5db;
+}
+
+.platform-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.platform-icon.chatgpt {
+  background: linear-gradient(135deg, #10a37f, #1a73e8);
+}
+
+.platform-icon.claude {
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+}
+
+.platform-icon.gemini {
+  background: linear-gradient(135deg, #4285f4, #34a853);
+}
+
+.platform-icon.deepseek {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.floating-chat-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.control-btn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: #6b7280;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.control-btn:hover {
+  transform: scale(1.1);
+}
+
+.minimize-btn {
+  background: #fbbf24;
+}
+
+.minimize-btn:hover {
+  background: #f59e0b;
+}
+
+.close-btn {
+  background: #ef4444;
+}
+
+.close-btn:hover {
+  background: #dc2626;
+}
+
+.floating-chat-content {
+  padding: 16px;
+  height: calc(100% - 60px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #374151;
+  background: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-chat-content {
+    color: #d1d5db;
+  }
+}
+
+html[data-theme="dark"] .floating-chat-content,
+[data-theme="dark"] .floating-chat-content,
+.dark .floating-chat-content {
+  color: #d1d5db;
+}
+
+.floating-chat-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.floating-chat-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.floating-chat-content::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 3px;
+}
+
+.floating-chat-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.6);
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-chat-content::-webkit-scrollbar-thumb {
+    background: rgba(75, 85, 99, 0.6);
+  }
+  
+  .floating-chat-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(75, 85, 99, 0.8);
+  }
+}
+
+.floating-chat-placeholder {
+  text-align: center;
+  color: #9ca3af;
+  font-style: italic;
+  margin-top: 40px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-chat-placeholder {
+    color: #6b7280;
+  }
+}
+
+html[data-theme="dark"] .floating-chat-placeholder,
+[data-theme="dark"] .floating-chat-placeholder,
+.dark .floating-chat-placeholder {
+  color: #6b7280;
+}
+
+.floating-chat-resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  cursor: se-resize;
+  background: linear-gradient(-45deg, transparent 30%, rgba(156, 163, 175, 0.3) 30%, rgba(156, 163, 175, 0.3) 40%, transparent 40%, transparent 60%, rgba(156, 163, 175, 0.3) 60%, rgba(156, 163, 175, 0.3) 70%, transparent 70%);
+}
+
+.floating-chat-resize-handle:hover {
+  background: linear-gradient(-45deg, transparent 30%, rgba(156, 163, 175, 0.5) 30%, rgba(156, 163, 175, 0.5) 40%, transparent 40%, transparent 60%, rgba(156, 163, 175, 0.5) 60%, rgba(156, 163, 175, 0.5) 70%, transparent 70%);
+}
+
+/* Content styling for cloned AI responses */
+.floating-content {
+  all: unset;
+  display: block;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+.floating-content * {
+  max-width: 100% !important;
+}
+
+.floating-content h1, .floating-content h2, .floating-content h3,
+.floating-content h4, .floating-content h5, .floating-content h6 {
+  margin: 16px 0 8px 0;
+  font-weight: 600;
+}
+
+.floating-content h1 { font-size: 1.5em; }
+.floating-content h2 { font-size: 1.3em; }
+.floating-content h3 { font-size: 1.1em; }
+
+.floating-content p {
+  margin: 8px 0;
+}
+
+.floating-content ul, .floating-content ol {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.floating-content li {
+  margin: 4px 0;
+}
+
+.floating-content code {
+  background: rgba(156, 163, 175, 0.1);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9em;
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-content code {
+    background: rgba(75, 85, 99, 0.3);
+  }
+}
+
+html[data-theme="dark"] .floating-content code,
+[data-theme="dark"] .floating-content code,
+.dark .floating-content code {
+  background: rgba(75, 85, 99, 0.3);
+}
+
+.floating-content pre {
+  background: rgba(156, 163, 175, 0.1);
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 12px 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-content pre {
+    background: rgba(75, 85, 99, 0.3);
+  }
+}
+
+html[data-theme="dark"] .floating-content pre,
+[data-theme="dark"] .floating-content pre,
+.dark .floating-content pre {
+  background: rgba(75, 85, 99, 0.3);
+}
+
+.floating-content pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+.floating-content blockquote {
+  border-left: 3px solid #d1d5db;
+  padding-left: 12px;
+  margin: 12px 0;
+  font-style: italic;
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-content blockquote {
+    border-left-color: #6b7280;
+  }
+}
+
+html[data-theme="dark"] .floating-content blockquote,
+[data-theme="dark"] .floating-content blockquote,
+.dark .floating-content blockquote {
+  border-left-color: #6b7280;
+}
+
+.floating-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+}
+
+.floating-content th, .floating-content td {
+  border: 1px solid rgba(156, 163, 175, 0.3);
+  padding: 8px;
+  text-align: left;
+}
+
+.floating-content th {
+  background: rgba(156, 163, 175, 0.1);
+  font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-content th, .floating-content td {
+    border-color: rgba(75, 85, 99, 0.5);
+  }
+  
+  .floating-content th {
+    background: rgba(75, 85, 99, 0.3);
+  }
+}
+
+html[data-theme="dark"] .floating-content th,
+html[data-theme="dark"] .floating-content td,
+[data-theme="dark"] .floating-content th,
+[data-theme="dark"] .floating-content td,
+.dark .floating-content th,
+.dark .floating-content td {
+  border-color: rgba(75, 85, 99, 0.5);
+}
+
+html[data-theme="dark"] .floating-content th,
+[data-theme="dark"] .floating-content th,
+.dark .floating-content th {
+  background: rgba(75, 85, 99, 0.3);
+}
+
+/* Links in floating content */
+.floating-content a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.floating-content a:hover {
+  text-decoration: underline;
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-content a {
+    color: #60a5fa;
+  }
+}
+
+html[data-theme="dark"] .floating-content a,
+[data-theme="dark"] .floating-content a,
+.dark .floating-content a {
+  color: #60a5fa;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .floating-chat-window {
+    max-width: 90vw;
+    max-height: 70vh;
+    min-width: 200px;
+  }
+  
+  .floating-chat-content {
+    padding: 12px;
+    font-size: 13px;
+  }
+  
+  .floating-chat-header {
+    padding: 8px 12px;
+  }
+}
+
+/* Smooth transitions for all state changes */
+.floating-chat-window,
+.floating-chat-window * {
+  transition: all 0.2s ease;
+}
+
+/* Hide unwanted elements from cloned content */
+.floating-content button,
+.floating-content .copy-button,
+.floating-content .edit-button,
+.floating-content [role="button"] {
+  display: none !important;
+}
+
+/* Ensure text is readable */
+.floating-content {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Focus states for accessibility */
+.control-btn:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.floating-chat-window:focus-within {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(59, 130, 246, 0.3);
+} 
