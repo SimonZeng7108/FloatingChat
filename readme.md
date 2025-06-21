@@ -7,16 +7,49 @@ A Chrome extension that enhances usability on AI chat platforms by providing flo
 - **Automatic Platform Detection**: Automatically detects and works with ChatGPT, Claude, Gemini, and DeepSeek
 - **Floating Answer Window**: Shows the latest AI response in a resizable, draggable floating window
 - **Independent Scrolling**: Read long answers without affecting your main chat position
+- **Response Pinning & Navigation**: Pin any response to read while asking new questions
+- **Multi-Response History**: Navigate through all conversation responses with controls
 - **Elegant Design**: Apple-inspired UI with light/dark mode support
 - **Seamless Integration**: Works without interfering with normal platform operation
 - **Persistent Settings**: Remembers window position, size, and preferences
 
 ## Supported Platforms
 
-- **ChatGPT** (chatgpt.com)
+- **ChatGPT** (chatgpt.com) - Enhanced with scroll prevention
 - **Claude** (claude.ai) 
 - **Gemini** (gemini.google.com)
 - **DeepSeek** (chat.deepseek.com)
+
+## Enhanced Features
+
+### Response Pinning & Navigation
+This powerful feature allows you to multitask effectively:
+
+**Pin Responses**: 
+- Click the 📌 pin button to "freeze" the current response in the floating window
+- Continue reading long responses while asking new questions
+- Pinned responses won't be replaced by new ones
+
+**Navigate Response History**:
+- Use ◀ ▶ buttons to browse through all conversation responses
+- See response counter (e.g., "3/7") showing current position
+- Jump to any previous response instantly
+
+**Auto-Update Mode** (default):
+- Shows the latest response automatically
+- Unpin to resume following the latest responses
+
+### How It Works
+1. **Response Storage**: Every AI response is automatically stored for navigation
+2. **Independent Display**: Floating window operates independently from main chat scrolling
+3. **Smart Multitasking**: Read long responses while continuing the conversation
+4. **Visual Feedback**: Clear indicators show pinned state and navigation position
+
+### Use Cases
+- **Long Code Explanations**: Pin a code example while asking follow-up questions
+- **Research Sessions**: Reference previous answers while exploring new topics  
+- **Complex Tutorials**: Keep instructions visible while asking for clarification
+- **Comparison Tasks**: Compare multiple responses side-by-side mentally
 
 ## Installation
 

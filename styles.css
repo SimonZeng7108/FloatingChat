@@ -67,6 +67,20 @@ html[data-theme="dark"] .floating-chat-window.platform-chatgpt,
   box-shadow: 0 15px 40px rgba(0, 100, 255, 0.2);
 }
 
+/* Real-time update indicator */
+.floating-chat-window.updating {
+  border-left: 3px solid #10b981;
+  transition: border-left 0.2s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-chat-window.updating {
+    border-left-color: #34d399;
+  }
+}
+
+
+
 .floating-chat-header {
   display: flex;
   justify-content: space-between;
@@ -113,6 +127,28 @@ html[data-theme="dark"] .floating-chat-title,
   color: #d1d5db;
 }
 
+@media (prefers-color-scheme: dark) {
+  .navigation-controls {
+    border-right-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .response-counter {
+    color: #9ca3af;
+  }
+}
+
+html[data-theme="dark"] .navigation-controls,
+[data-theme="dark"] .navigation-controls,
+.dark .navigation-controls {
+  border-right-color: rgba(255, 255, 255, 0.1);
+}
+
+html[data-theme="dark"] .response-counter,
+[data-theme="dark"] .response-counter,
+.dark .response-counter {
+  color: #9ca3af;
+}
+
 .platform-icon {
   width: 16px;
   height: 16px;
@@ -138,7 +174,37 @@ html[data-theme="dark"] .floating-chat-title,
 
 .floating-chat-controls {
   display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navigation-controls {
+  display: flex;
+  align-items: center;
   gap: 4px;
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  padding-right: 12px;
+}
+
+.window-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.response-counter {
+  font-size: 11px;
+  color: #666;
+  min-width: 35px;
+  text-align: center;
+  font-weight: 500;
+}
+
+
+
+.prev-btn:disabled,
+.next-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .control-btn {
@@ -162,13 +228,7 @@ html[data-theme="dark"] .floating-chat-title,
   transform: scale(1.1);
 }
 
-.minimize-btn {
-  background: #fbbf24;
-}
 
-.minimize-btn:hover {
-  background: #f59e0b;
-}
 
 .close-btn {
   background: #ef4444;
@@ -473,4 +533,99 @@ html[data-theme="dark"] .floating-content a,
 
 .floating-chat-window:focus-within {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+/* Q&A Layout */
+.qa-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.question-container {
+  background: rgba(59, 130, 246, 0.05);
+  border-left: 3px solid rgba(59, 130, 246, 0.3);
+  padding: 12px 16px;
+  margin-bottom: 0;
+  border-radius: 8px 8px 0 0;
+}
+
+.question-container .floating-content {
+  color: rgba(59, 130, 246, 0.9);
+  font-weight: 500;
+}
+
+.qa-separator {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0;
+  opacity: 0.6;
+}
+
+.answer-container {
+  background: rgba(16, 163, 127, 0.03);
+  border-left: 3px solid rgba(16, 163, 127, 0.3);
+  padding: 12px 16px;
+  margin-top: 0;
+  border-radius: 0 0 8px 8px;
+}
+
+.answer-container .floating-content {
+  color: #374151;
+}
+
+@media (prefers-color-scheme: dark) {
+  .question-container {
+    background: rgba(59, 130, 246, 0.1);
+    border-left-color: rgba(59, 130, 246, 0.4);
+  }
+  
+  .question-container .floating-content {
+    color: rgba(96, 165, 250, 0.9);
+  }
+  
+  .qa-separator {
+    background: #4b5563;
+  }
+  
+  .answer-container {
+    background: rgba(16, 163, 127, 0.08);
+    border-left-color: rgba(16, 163, 127, 0.4);
+  }
+  
+  .answer-container .floating-content {
+    color: #d1d5db;
+  }
+}
+
+html[data-theme="dark"] .question-container,
+[data-theme="dark"] .question-container,
+.dark .question-container {
+  background: rgba(59, 130, 246, 0.1);
+  border-left-color: rgba(59, 130, 246, 0.4);
+}
+
+html[data-theme="dark"] .question-container .floating-content,
+[data-theme="dark"] .question-container .floating-content,
+.dark .question-container .floating-content {
+  color: rgba(96, 165, 250, 0.9);
+}
+
+html[data-theme="dark"] .qa-separator,
+[data-theme="dark"] .qa-separator,
+.dark .qa-separator {
+  background: #4b5563;
+}
+
+html[data-theme="dark"] .answer-container,
+[data-theme="dark"] .answer-container,
+.dark .answer-container {
+  background: rgba(16, 163, 127, 0.08);
+  border-left-color: rgba(16, 163, 127, 0.4);
+}
+
+html[data-theme="dark"] .answer-container .floating-content,
+[data-theme="dark"] .answer-container .floating-content,
+.dark .answer-container .floating-content {
+  color: #d1d5db;
 } 

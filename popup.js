@@ -10,12 +10,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const platformIconEl = document.getElementById('platform-icon');
   const platformNameEl = document.getElementById('platform-name');
   const toggleEl = document.getElementById('toggle-extension');
-  const refreshBtn = document.getElementById('refresh-btn');
-  const resetBtn = document.getElementById('reset-btn');
+  
+  
+  
   const helpLink = document.getElementById('help-link');
 
   let currentTab = null;
   let extensionStatus = null;
+
 
   // Initialize popup
   await initializePopup();
@@ -40,6 +42,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
+      // Load scroll prevention setting
+  
+      
       // Get extension status from content script
       await getExtensionStatus();
       
@@ -64,6 +69,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       showError('Extension not loaded on this page');
     }
   }
+
+
 
   function updateUI() {
     // Hide loading, show content
@@ -114,8 +121,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Disable controls
     toggleEl.style.opacity = '0.5';
     toggleEl.style.pointerEvents = 'none';
-    refreshBtn.disabled = true;
-    resetBtn.disabled = true;
+    
+    
   }
 
   function showError(message) {
@@ -149,31 +156,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  refreshBtn.addEventListener('click', async () => {
-    loadingEl.style.display = 'flex';
-    mainContentEl.style.display = 'none';
-    await getExtensionStatus();
-  });
 
-  resetBtn.addEventListener('click', async () => {
-    try {
-      // Reset window position and size to defaults
-      await chrome.storage.sync.set({
-        windowPosition: { x: 20, y: 20 },
-        windowSize: { width: 400, height: 500 }
-      });
 
-      // Refresh the extension
-      if (currentTab) {
-        await chrome.tabs.reload(currentTab.id);
-      }
-      
-      // Close popup
-      window.close();
-    } catch (error) {
-      console.error('Failed to reset position:', error);
-    }
-  });
+
 
   helpLink.addEventListener('click', (e) => {
     e.preventDefault();
@@ -186,8 +171,10 @@ FloatingChat - AI Platform Enhancer
 
 FEATURES:
 • Automatic platform detection for ChatGPT, Claude, Gemini, and DeepSeek
-• Floating window that shows the latest AI response
+• Floating window that shows the latest AI response with your question
 • Independent scrolling without affecting main chat
+• Real-time updates during AI response generation
+• Response navigation with previous/next buttons
 • Draggable and resizable window
 • Light/dark mode support
 
@@ -195,9 +182,11 @@ USAGE:
 1. Visit any supported AI chat platform
 2. Start a conversation with the AI
 3. The floating window will automatically appear with the latest response
-4. Drag the window by its header to reposition
-5. Resize by dragging the corner handle
-6. Use the minimize/close buttons to control the window
+4. View both your question and the AI's answer in the floating window
+5. Use previous/next buttons to navigate through conversation history
+6. Drag the window by its header to reposition
+7. Resize by dragging the corner handle
+8. Use the close button to hide the window
 
 SUPPORTED PLATFORMS:
 • ChatGPT (chatgpt.com)
@@ -209,6 +198,7 @@ TROUBLESHOOTING:
 • If the extension doesn't work, try refreshing the page
 • Make sure you're on a supported platform
 • Check that the extension is enabled in Chrome
+• The floating window updates in real-time as AI generates responses
 
 Version 1.0.0
     `.trim();
@@ -223,11 +213,6 @@ Version 1.0.0
     } else if (e.key === ' ' || e.key === 'Enter') {
       if (e.target === toggleEl) {
         toggleEl.click();
-      }
-    } else if (e.key === 'r' || e.key === 'R') {
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        refreshBtn.click();
       }
     }
   });

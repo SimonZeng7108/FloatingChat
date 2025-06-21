@@ -7,9 +7,21 @@ class FloatingChatManager {
     this.floatingWindow = null;
     this.isEnabled = true;
     this.lastAnswerElement = null;
+    this.lastAnswerContent = '';
+    this.lastAnswerHTML = '';
     this.observers = [];
     this.windowPosition = { x: 20, y: 20 };
     this.windowSize = { width: 400, height: 500 };
+    
+    // Enhanced floating window state
+    this.responses = []; // Store all responses
+    this.currentResponseIndex = -1;
+    this.contentObserver = null;
+    this.contentUpdateTimeout = null;
+    this.fastMonitoringTimer = null;
+    this.generationMonitoringTimer = null;
+    this.elementPollingTimer = null;
+    this.debugMode = false; // Set to true for detailed logging
     
     this.init();
   }
@@ -90,11 +102,17 @@ class FloatingChatManager {
       <div class="floating-chat-header">
         <div class="floating-chat-title">
           <span class="platform-icon ${this.platform}"></span>
-          Latest Answer
+          <span class="title-text">Latest Answer</span>
         </div>
         <div class="floating-chat-controls">
-          <button class="control-btn minimize-btn" title="Minimize">−</button>
-          <button class="control-btn close-btn" title="Close">×</button>
+          <div class="navigation-controls">
+            <button class="control-btn prev-btn" title="Previous Response">◀</button>
+            <span class="response-counter">0/0</span>
+            <button class="control-btn next-btn" title="Next Response">▶</button>
+          </div>
+          <div class="window-controls">
+            <button class="control-btn close-btn" title="Close">×</button>
+          </div>
         </div>
       </div>
       <div class="floating-chat-content">
@@ -126,8 +144,11 @@ class FloatingChatManager {
   addWindowEventListeners() {
     const header = this.floatingWindow.querySelector('.floating-chat-header');
     const closeBtn = this.floatingWindow.querySelector('.close-btn');
-    const minimizeBtn = this.floatingWindow.querySelector('.minimize-btn');
     const resizeHandle = this.floatingWindow.querySelector('.floating-chat-resize-handle');
+    
+    // Navigation controls
+    const prevBtn = this.floatingWindow.querySelector('.prev-btn');
+    const nextBtn = this.floatingWindow.querySelector('.next-btn');
 
     // Make window draggable
     let isDragging = false;
@@ -175,25 +196,6 @@ class FloatingChatManager {
       this.saveSettings();
     });
 
-    // Minimize button
-    let isMinimized = false;
-    minimizeBtn.addEventListener('click', () => {
-      const content = this.floatingWindow.querySelector('.floating-chat-content');
-      isMinimized = !isMinimized;
-      
-      if (isMinimized) {
-        content.style.display = 'none';
-        this.floatingWindow.style.height = '40px';
-        minimizeBtn.textContent = '+';
-        minimizeBtn.title = 'Restore';
-      } else {
-        content.style.display = 'block';
-        this.floatingWindow.style.height = `${this.windowSize.height}px`;
-        minimizeBtn.textContent = '−';
-        minimizeBtn.title = 'Minimize';
-      }
-    });
-
     // Make window resizable
     let isResizing = false;
     
@@ -224,6 +226,19 @@ class FloatingChatManager {
       document.removeEventListener('mouseup', this.handleResizeEnd);
       this.saveSettings();
     };
+
+    // Navigation control handlers
+    prevBtn.addEventListener('click', () => {
+      if (this.currentResponseIndex > 0) {
+        this.navigateToResponse(this.currentResponseIndex - 1);
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (this.currentResponseIndex < this.responses.length - 1) {
+        this.navigateToResponse(this.currentResponseIndex + 1);
+      }
+    });
   }
 
   startAnswerMonitoring() {
@@ -272,8 +287,11 @@ class FloatingChatManager {
         attributes: true,
         attributeFilter: ['class', 'data-testid']
       });
+
+      // Track this observer for cleanup
       this.observers.push(observer);
-      console.log(`FloatingChat: Monitoring ${chatContainer.tagName}.${chatContainer.className} for changes`);
+
+
     }
 
     // Check for existing answers on load with multiple attempts
@@ -285,19 +303,93 @@ class FloatingChatManager {
       }, delay);
     });
     
-    // More frequent monitoring for platforms that might need it
-    const monitoringInterval = (this.platform === 'claude' || this.platform === 'deepseek') ? 3000 : 5000;
-    setInterval(() => {
+    // Multiple monitoring strategies for reliable updates
+    
+    // Strategy 1: Frequent polling for content changes
+    const fastMonitoringInterval = 500; // Check every 500ms for fast updates
+    this.fastMonitoringTimer = setInterval(() => {
       this.findLatestAnswer();
-    }, monitoringInterval);
+    }, fastMonitoringInterval);
+    
+    // Strategy 2: Very frequent polling when actively generating
+    this.generationMonitoringTimer = setInterval(() => {
+      this.checkForActiveGeneration();
+    }, 200); // Check every 200ms during generation
+  }
+
+  // Check for active generation and force updates
+  checkForActiveGeneration() {
+    if (!this.lastAnswerElement) return;
+    
+    const currentContent = this.lastAnswerElement.textContent || '';
+    
+    // Check if content has changed since last check
+    if (this.lastAnswerContent !== currentContent) {
+      if (this.debugMode) {
+        console.log('FloatingChat: Active generation detected - forcing update', {
+          previousLength: this.lastAnswerContent.length,
+          currentLength: currentContent.length,
+          elementTag: this.lastAnswerElement.tagName,
+          elementClasses: this.lastAnswerElement.className
+        });
+      }
+      this.handleContentUpdate(this.lastAnswerElement);
+    }
+    
+    // Also check for typical generation indicators
+    const isGenerating = this.detectActiveGeneration();
+    if (isGenerating && this.debugMode) {
+      console.log('FloatingChat: Generation indicators detected, forcing thorough check');
+    }
+    if (isGenerating) {
+      // Force a more thorough check
+      this.findLatestAnswer();
+    }
+  }
+
+  // Detect if AI is actively generating content
+  detectActiveGeneration() {
+    // Platform-specific generation indicators
+    switch (this.platform) {
+      case 'chatgpt':
+        // Look for spinning indicators, "thinking" states, etc.
+        return !!(
+          document.querySelector('[data-testid*="stop"]') ||
+          document.querySelector('.result-streaming') ||
+          document.querySelector('[aria-label*="Stop"]') ||
+          document.querySelector('[title*="Stop"]')
+        );
+      
+      case 'claude':
+        return !!(
+          document.querySelector('[data-testid="stop-button"]') ||
+          document.querySelector('[aria-label*="stop"]') ||
+          document.querySelector('.animate-pulse')
+        );
+      
+      case 'gemini':
+        return !!(
+          document.querySelector('[aria-label*="Stop"]') ||
+          document.querySelector('.generating')
+        );
+      
+      case 'deepseek':
+        return !!(
+          document.querySelector('[title*="Stop"]') ||
+          document.querySelector('.generating')
+        );
+      
+      default:
+        return false;
+    }
   }
 
   getAnswerSelectors() {
     const selectors = {
       chatgpt: {
-        container: 'main',
-        answer: '[data-message-author-role="assistant"]',
-        content: '.markdown, .prose, [data-message-author-role="assistant"] > div > div'
+        container: 'main, [role="main"], .flex.flex-col.text-sm, .h-full.w-full.flex.flex-col',
+        answer: '[data-message-author-role="assistant"], .group\\/conversation-turn, [data-testid*="conversation-turn"], .agent-turn, [data-message-id], .group[data-testid]',
+        content: '.markdown, .prose, [data-message-author-role="assistant"] > div > div, .whitespace-pre-wrap, .agent-turn .whitespace-pre-wrap, .prose.w-full, .whitespace-pre-wrap:not(code)'
       },
       claude: {
         container: 'main, [data-testid="conversation"]',
@@ -437,7 +529,7 @@ class FloatingChatManager {
 
     // Get the latest answer (filter out empty ones)
     const validAnswers = answers.filter(answer => {
-      const text = answer.textContent?.trim();
+      const text = answer.textContent ? answer.textContent.trim() : '';
       return text && text.length > 10; // Must have meaningful content
     });
 
@@ -449,68 +541,389 @@ class FloatingChatManager {
     const latestAnswer = validAnswers[validAnswers.length - 1];
     console.log(`FloatingChat: Latest answer found:`, latestAnswer);
     
-    // Check if this is a new answer
-    if (latestAnswer !== this.lastAnswerElement) {
-      console.log(`FloatingChat: New answer detected, updating floating window`);
+    // Check if this is a new answer OR if content has changed
+    const currentContent = latestAnswer.textContent || '';
+    const hasNewAnswer = latestAnswer !== this.lastAnswerElement;
+    const hasContentChanged = this.lastAnswerContent !== currentContent;
+    
+    if (hasNewAnswer) {
+      console.log(`FloatingChat: New answer element detected, storing and updating floating window`);
+      
       this.lastAnswerElement = latestAnswer;
-      this.updateFloatingWindow(latestAnswer);
+      this.lastAnswerContent = currentContent;
+      this.lastAnswerHTML = latestAnswer.innerHTML || '';
+      this.storeNewResponse(latestAnswer);
+      
+      // Always update floating window with latest response
+      const latestResponse = this.responses[this.responses.length - 1];
+      this.updateFloatingWindowWithQA(latestResponse);
+      
+      // Set up real-time content monitoring for this answer
+      this.setupContentMonitoring(latestAnswer);
+    } else if (hasContentChanged && this.lastAnswerElement) {
+      console.log(`FloatingChat: Content changed in existing answer, updating floating window`);
+      
+      this.lastAnswerContent = currentContent;
+      this.lastAnswerHTML = latestAnswer.innerHTML || '';
+      
+      // Update the stored response content
+      if (this.responses.length > 0) {
+        const latestResponse = this.responses[this.responses.length - 1];
+        latestResponse.content = currentContent.substring(0, 100) + '...';
+        
+        // Update floating window if we're viewing the latest response
+        if (this.currentResponseIndex === this.responses.length - 1) {
+          this.updateFloatingWindowWithQA(latestResponse);
+        }
+      }
     } else {
-      console.log(`FloatingChat: Same answer as before, no update needed`);
+      console.log(`FloatingChat: No changes detected`);
     }
   }
 
-  updateFloatingWindow(answerElement) {
+  // Set up real-time content monitoring for the current answer element
+  setupContentMonitoring(answerElement) {
+    // Clean up previous content observer
+    if (this.contentObserver) {
+      this.contentObserver.disconnect();
+      this.contentObserver = null;
+    }
+
+    // Create new observer for content changes
+    this.contentObserver = new MutationObserver((mutations) => {
+      let hasContentChange = false;
+      
+      for (const mutation of mutations) {
+        if (mutation.type === 'childList' || 
+            mutation.type === 'characterData' || 
+            (mutation.type === 'attributes' && mutation.attributeName === 'data-testid')) {
+          hasContentChange = true;
+          break;
+        }
+      }
+
+      if (hasContentChange) {
+        // Debounce rapid content changes
+        clearTimeout(this.contentUpdateTimeout);
+        this.contentUpdateTimeout = setTimeout(() => {
+          this.handleContentUpdate(answerElement);
+        }, 100); // Very short debounce for responsiveness
+      }
+    });
+
+    // Observe the answer element for content changes with comprehensive monitoring
+    this.contentObserver.observe(answerElement, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ['data-testid', 'class', 'aria-label', 'title']
+    });
+
+    console.log('FloatingChat: Real-time content monitoring setup for current answer');
+    
+    // Additional polling for this specific element (very aggressive)
+    if (this.elementPollingTimer) {
+      clearInterval(this.elementPollingTimer);
+    }
+    
+    this.elementPollingTimer = setInterval(() => {
+      this.handleContentUpdate(answerElement);
+    }, 150); // Poll every 150ms for this specific answer element
+  }
+
+  // Handle content updates in real-time
+  handleContentUpdate(answerElement) {
+    if (!answerElement || !this.floatingWindow) return;
+    
+    const currentContent = answerElement.textContent || '';
+    const currentInnerHTML = answerElement.innerHTML || '';
+    
+    // Check both text content and HTML structure changes
+    const hasTextChanged = this.lastAnswerContent !== currentContent;
+    const hasStructureChanged = this.lastAnswerHTML !== currentInnerHTML;
+    
+    if (hasTextChanged || hasStructureChanged) {
+      console.log('FloatingChat: Real-time content update detected', {
+        textChanged: hasTextChanged,
+        structureChanged: hasStructureChanged,
+        contentLength: currentContent.length
+      });
+      
+      this.lastAnswerContent = currentContent;
+      this.lastAnswerHTML = currentInnerHTML;
+      
+      // Update the stored response content
+      if (this.responses.length > 0) {
+        const latestResponse = this.responses[this.responses.length - 1];
+        latestResponse.content = currentContent.substring(0, 100) + '...';
+        latestResponse.answerElement = answerElement; // Update element reference
+        
+                 // Force update floating window if we're viewing the latest response
+         if (this.currentResponseIndex === this.responses.length - 1 || this.currentResponseIndex === -1) {
+           this.updateFloatingWindowWithQA(latestResponse);
+           
+           // Add visual indicator for real-time updates
+           if (this.floatingWindow) {
+             this.floatingWindow.classList.add('updating');
+             setTimeout(() => {
+               this.floatingWindow.classList.remove('updating');
+             }, 200);
+           }
+         }
+      }
+    }
+  }
+
+  // Store new response for navigation
+  storeNewResponse(answerElement) {
+    // Try to find the corresponding question
+    const questionElement = this.findCorrespondingQuestion(answerElement);
+    
+    const responseData = {
+      answerElement: answerElement,
+      questionElement: questionElement,
+      timestamp: Date.now(),
+      content: answerElement.textContent ? answerElement.textContent.substring(0, 100) + '...' : 'Response',
+      index: this.responses.length
+    };
+    
+    this.responses.push(responseData);
+    this.currentResponseIndex = this.responses.length - 1;
+    
+    console.log(`FloatingChat: Stored response ${this.currentResponseIndex}:`, responseData.content);
+    console.log(`FloatingChat: Question found:`, !!questionElement);
+    
+    // Update navigation controls if window exists
+    if (this.floatingWindow) {
+      this.updateNavigationControls();
+    }
+  }
+
+  // Find the question that corresponds to this answer
+  findCorrespondingQuestion(answerElement) {
+    const questionSelectors = this.getQuestionSelectors();
+    if (!questionSelectors) return null;
+
+    // Find all questions on the page
+    let questions = [];
+    const questionSelectorList = questionSelectors.question.split(', ');
+    
+    for (const selector of questionSelectorList) {
+      try {
+        const found = document.querySelectorAll(selector.trim());
+        if (found.length > 0) {
+          questions = Array.from(found);
+          break;
+        }
+      } catch (error) {
+        continue;
+      }
+    }
+
+    if (questions.length === 0) return null;
+
+    // Find the question that comes immediately before this answer
+    let questionElement = null;
+    
+    // Strategy 1: Look for the previous sibling or previous element
+    let currentElement = answerElement;
+    while (currentElement && currentElement.previousElementSibling) {
+      currentElement = currentElement.previousElementSibling;
+      if (questions.includes(currentElement)) {
+        questionElement = currentElement;
+        break;
+      }
+    }
+
+    // Strategy 2: If no direct sibling, look at document order
+    if (!questionElement) {
+      const answerPosition = Array.from(document.querySelectorAll('*')).indexOf(answerElement);
+      for (let i = questions.length - 1; i >= 0; i--) {
+        const questionPosition = Array.from(document.querySelectorAll('*')).indexOf(questions[i]);
+        if (questionPosition < answerPosition) {
+          questionElement = questions[i];
+          break;
+        }
+      }
+    }
+
+    return questionElement;
+  }
+
+  // Get selectors for user questions/messages
+  getQuestionSelectors() {
+    const selectors = {
+      chatgpt: {
+        question: '[data-message-author-role="user"], .group\\/conversation-turn:has([data-message-author-role="user"]), [data-testid*="user"], .user-message',
+        content: '[data-message-author-role="user"] > div > div, .whitespace-pre-wrap, .user-message .whitespace-pre-wrap'
+      },
+      claude: {
+        question: '[data-testid="user-message"], .user-message, .font-user-message',
+        content: '[data-testid="user-message"] div, .user-message div, .font-user-message'
+      },
+      gemini: {
+        question: '.user-message, .user-query, [data-role="user"], .human-message',
+        content: '.user-message-text, .query-content, .user-content'
+      },
+      deepseek: {
+        question: '.user-message, [class*="user"], .human-message',
+        content: '.user-content, .human-message-text'
+      }
+    };
+
+    return selectors[this.platform];
+  }
+
+  // Navigate to a specific response
+  navigateToResponse(index) {
+    if (index < 0 || index >= this.responses.length) {
+      console.log(`FloatingChat: Invalid response index: ${index}`);
+      return;
+    }
+    
+    this.currentResponseIndex = index;
+    const response = this.responses[index];
+    
+    console.log(`FloatingChat: Navigating to response ${index}:`, response.content);
+    
+    this.updateFloatingWindowWithQA(response);
+    this.updateNavigationControls();
+  }
+
+
+
+  // Update navigation controls state
+  updateNavigationControls() {
+    if (!this.floatingWindow) return;
+
+    const prevBtn = this.floatingWindow.querySelector('.prev-btn');
+    const nextBtn = this.floatingWindow.querySelector('.next-btn');
+    const counter = this.floatingWindow.querySelector('.response-counter');
+
+    if (prevBtn && nextBtn && counter) {
+      // Update counter
+      counter.textContent = `${this.currentResponseIndex + 1}/${this.responses.length}`;
+      
+      // Update button states
+      prevBtn.disabled = this.currentResponseIndex <= 0;
+      nextBtn.disabled = this.currentResponseIndex >= this.responses.length - 1;
+    }
+  }
+
+  // Update window header based on state
+  updateWindowHeader() {
+    if (!this.floatingWindow) return;
+
+    const titleText = this.floatingWindow.querySelector('.title-text');
+    if (titleText) {
+      titleText.textContent = 'Latest Answer';
+    }
+  }
+
+  // New method to update floating window with both question and answer
+  updateFloatingWindowWithQA(responseData) {
     if (!this.floatingWindow || !this.isEnabled) return;
 
-    console.log(`FloatingChat: Updating floating window with element:`, answerElement);
+    console.log(`FloatingChat: Updating floating window with Q&A`);
 
     const content = this.floatingWindow.querySelector('.floating-chat-content');
+    content.innerHTML = '';
+
+    // Create container for question and answer
+    const qaContainer = document.createElement('div');
+    qaContainer.className = 'qa-container';
+
+    // Add question if available
+    if (responseData.questionElement) {
+      console.log(`FloatingChat: Adding question to floating window`);
+      const questionContainer = document.createElement('div');
+      questionContainer.className = 'question-container';
+      
+      const questionContent = this.extractContent(responseData.questionElement, 'question');
+      if (questionContent) {
+        const clonedQuestion = questionContent.cloneNode(true);
+        this.cleanupClonedContent(clonedQuestion);
+        questionContainer.appendChild(clonedQuestion);
+        qaContainer.appendChild(questionContainer);
+
+        // Add separator line
+        const separator = document.createElement('div');
+        separator.className = 'qa-separator';
+        qaContainer.appendChild(separator);
+      }
+    }
+
+    // Add answer
+    console.log(`FloatingChat: Adding answer to floating window`);
+    const answerContainer = document.createElement('div');
+    answerContainer.className = 'answer-container';
     
-    // Try to find the best content within the answer element
-    let answerContent = null;
-    const selectors = this.getAnswerSelectors();
+    const answerContent = this.extractContent(responseData.answerElement, 'answer');
+    if (answerContent) {
+      const clonedAnswer = answerContent.cloneNode(true);
+      this.cleanupClonedContent(clonedAnswer);
+      answerContainer.appendChild(clonedAnswer);
+      qaContainer.appendChild(answerContainer);
+    }
+
+    content.appendChild(qaContainer);
+    content.scrollTop = 0;
+
+    // Add visual feedback
+    this.floatingWindow.classList.add('new-content');
+    setTimeout(() => {
+      this.floatingWindow.classList.remove('new-content');
+    }, 1000);
+
+    console.log(`FloatingChat: Q&A floating window updated successfully`);
+  }
+
+  // Extract content from question or answer element
+  extractContent(element, type) {
+    if (!element) return null;
+
+    const selectors = type === 'question' ? this.getQuestionSelectors() : this.getAnswerSelectors();
+    if (!selectors) return element;
+
+    // Try to find the best content within the element
+    let content = null;
     
-    if (selectors && selectors.content) {
+    if (selectors.content) {
       const contentSelectors = selectors.content.split(', ');
       
       for (const selector of contentSelectors) {
         try {
-          const found = answerElement.querySelector(selector.trim());
-          console.log(`FloatingChat: Content selector "${selector}" found:`, found);
+          const found = element.querySelector(selector.trim());
           if (found && found.textContent.trim().length > 0) {
-            answerContent = found;
+            content = found;
             break;
           }
         } catch (error) {
-          console.log(`FloatingChat: Error with content selector "${selector}":`, error);
           continue;
         }
       }
     }
     
-    // Platform-specific content extraction
-    if (!answerContent) {
-      console.log(`FloatingChat: No content found with selectors, trying platform-specific extraction`);
-      
+    // Platform-specific content extraction fallback
+    if (!content) {
       if (this.platform === 'claude') {
-        // Look for Claude-specific content patterns
-        const claudeContentSelectors = [
+        const fallbackSelectors = [
           '.font-claude-message',
           '.prose',
           '[data-testid="message"] > div > div',
           'div'
         ];
         
-        for (const selector of claudeContentSelectors) {
-          const found = answerElement.querySelector(selector);
+        for (const selector of fallbackSelectors) {
+          const found = element.querySelector(selector);
           if (found && found.textContent.trim().length > 10) {
-            answerContent = found;
+            content = found;
             break;
           }
         }
       } else if (this.platform === 'deepseek') {
-        // Look for DeepSeek-specific content patterns
-        const deepSeekContentSelectors = [
+        const fallbackSelectors = [
           '.ds-markdown',
           '.ds-markdown-paragraph',
           '._7eb2358 svg + div',
@@ -518,10 +931,10 @@ class FloatingChatManager {
           'div'
         ];
         
-        for (const selector of deepSeekContentSelectors) {
-          const found = answerElement.querySelector(selector);
+        for (const selector of fallbackSelectors) {
+          const found = element.querySelector(selector);
           if (found && found.textContent.trim().length > 10) {
-            answerContent = found;
+            content = found;
             break;
           }
         }
@@ -529,32 +942,7 @@ class FloatingChatManager {
     }
     
     // Fallback to the entire element if no specific content found
-    if (!answerContent) {
-      console.log(`FloatingChat: Using entire element as content`);
-      answerContent = answerElement;
-    }
-    
-    console.log(`FloatingChat: Final content to display:`, answerContent);
-    
-    const clonedContent = answerContent.cloneNode(true);
-    
-    // Clean up the cloned content
-    this.cleanupClonedContent(clonedContent);
-    
-    // Update the floating window
-    content.innerHTML = '';
-    content.appendChild(clonedContent);
-    
-    // Scroll to top of new content
-    content.scrollTop = 0;
-    
-    // Add visual feedback
-    this.floatingWindow.classList.add('new-content');
-    setTimeout(() => {
-      this.floatingWindow.classList.remove('new-content');
-    }, 1000);
-    
-    console.log(`FloatingChat: Floating window updated successfully`);
+    return content || element;
   }
 
   cleanupClonedContent(element) {
@@ -579,8 +967,14 @@ class FloatingChatManager {
         sendResponse({ 
           enabled: this.isEnabled, 
           platform: this.platform,
-          hasAnswer: !!this.lastAnswerElement
+          hasAnswer: !!this.lastAnswerElement,
+          totalResponses: this.responses.length,
+          currentIndex: this.currentResponseIndex
         });
+        break;
+      case 'navigateResponse':
+        this.navigateToResponse(request.index);
+        sendResponse({ success: true, currentIndex: this.currentResponseIndex });
         break;
     }
   }
@@ -596,8 +990,9 @@ class FloatingChatManager {
       }
       
       // Refresh content if we have an answer
-      if (this.lastAnswerElement) {
-        this.updateFloatingWindow(this.lastAnswerElement);
+      if (this.lastAnswerElement && this.responses.length > 0) {
+        const latestResponse = this.responses[this.responses.length - 1];
+        this.updateFloatingWindowWithQA(latestResponse);
       }
     } else {
       if (this.floatingWindow) {
@@ -613,16 +1008,70 @@ class FloatingChatManager {
     this.observers.forEach(observer => observer.disconnect());
     this.observers = [];
     
+    // Clean up content observer
+    if (this.contentObserver) {
+      this.contentObserver.disconnect();
+      this.contentObserver = null;
+    }
+    
+    // Clear timeouts
+    if (this.checkTimeout) {
+      clearTimeout(this.checkTimeout);
+      this.checkTimeout = null;
+    }
+    
+    if (this.contentUpdateTimeout) {
+      clearTimeout(this.contentUpdateTimeout);
+      this.contentUpdateTimeout = null;
+    }
+    
+    // Clear monitoring timers
+    if (this.fastMonitoringTimer) {
+      clearInterval(this.fastMonitoringTimer);
+      this.fastMonitoringTimer = null;
+    }
+    
+    if (this.generationMonitoringTimer) {
+      clearInterval(this.generationMonitoringTimer);
+      this.generationMonitoringTimer = null;
+    }
+    
+    if (this.elementPollingTimer) {
+      clearInterval(this.elementPollingTimer);
+      this.elementPollingTimer = null;
+    }
+    
+    // Clear stored responses
+    this.responses = [];
+    this.currentResponseIndex = -1;
+    
     // Remove floating window
     if (this.floatingWindow) {
       this.floatingWindow.remove();
       this.floatingWindow = null;
     }
   }
+
+
 }
 
 // Initialize the extension
 let floatingChatManager = null;
+
+// Debug helper - call window.enableFloatingChatDebug() in console to enable detailed logging
+window.enableFloatingChatDebug = () => {
+  if (floatingChatManager) {
+    floatingChatManager.debugMode = true;
+    console.log('FloatingChat: Debug mode enabled - you will see detailed logs for monitoring and updates');
+  }
+};
+
+window.disableFloatingChatDebug = () => {
+  if (floatingChatManager) {
+    floatingChatManager.debugMode = false;
+    console.log('FloatingChat: Debug mode disabled');
+  }
+};
 
 // Wait for DOM to be ready
 if (document.readyState === 'loading') {
