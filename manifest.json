@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "FloatingChat - AI Platform Enhancer",
+  "name": "FloatingChat - AI History Navigator",
   "version": "1.0.0",
-  "description": "Enhances AI chat platforms with floating answer windows for better usability",
+  "description": "Never scroll back again! Navigate your complete AI conversation history instantly with floating windows. Zero-scroll access to all Q&A pairs.",
   "permissions": [
     "activeTab",
     "storage"

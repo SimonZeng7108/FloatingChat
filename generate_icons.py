@@ -1,25 +1,43 @@
 #!/usr/bin/env python3
 """
-High-quality FloatingChat icon generator using SVG
-Creates clean, simple chat window icons with perfect anti-aliasing
+FloatingChat Icon Generator
+
+Generates high-quality icons for the FloatingChat Chrome extension.
+Creates clean, modern chat window icons with proper scaling for all required sizes.
+
+@author Simon Zeng
+@version 1.0.0
+@email simon7108528@gmail.com
+
+Usage:
+    python generate_icons.py
+
+Requirements:
+    - python 3.6+
+    - cairosvg (optional, for high-quality PNG conversion)
 """
 
 import os
+import sys
 from xml.etree.ElementTree import Element, SubElement, tostring
 import xml.etree.ElementTree as ET
 
+# Try to import cairosvg for high-quality PNG conversion
 try:
     import cairosvg
     CAIRO_AVAILABLE = True
+    print("✅ cairosvg available - will generate high-quality PNGs")
 except ImportError:
     CAIRO_AVAILABLE = False
     print("⚠️  cairosvg not available. Installing...")
-    os.system("pip install cairosvg")
     try:
+        os.system("pip install cairosvg")
         import cairosvg
         CAIRO_AVAILABLE = True
+        print("✅ cairosvg installed successfully")
     except ImportError:
-        print("❌ Could not install cairosvg. Falling back to basic method.")
+        print("❌ Could not install cairosvg. Will generate SVG only.")
+        print("💡 Install manually with: pip install cairosvg")
 
 def create_chat_window_svg():
     """Create a clean, simple chat window SVG"""

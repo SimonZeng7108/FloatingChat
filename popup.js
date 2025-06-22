@@ -166,50 +166,101 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   function showHelpDialog() {
-    const helpText = `
-FloatingChat - AI Platform Enhancer
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'help-modal-overlay';
+    
+    // Create modal content
+    const modal = document.createElement('div');
+    modal.className = 'help-modal';
+    
+    const helpContent = `
+      <div class="help-header">
+                 <h2>FloatingChat - AI History Navigator</h2>
+        <button class="help-close">&times;</button>
+      </div>
+      <div class="help-content">
+        <div class="help-section">
+          <h3>🚀 FEATURES</h3>
+          <ul>
+            <li>Automatic platform detection for ChatGPT, Claude, Gemini, and DeepSeek</li>
+            <li>Floating window that shows the latest AI response with your question</li>
+            <li>Independent scrolling without affecting main chat</li>
+            <li>Real-time updates during AI response generation</li>
+            <li>Response navigation with previous/next buttons</li>
+            <li>Draggable and resizable window</li>
+            <li>Light/dark mode support</li>
+          </ul>
+        </div>
 
-FEATURES:
-• Automatic platform detection for ChatGPT, Claude, Gemini, and DeepSeek
-• Floating window that shows the latest AI response with your question
-• Independent scrolling without affecting main chat
-• Real-time updates during AI response generation
-• Response navigation with previous/next buttons
-• Draggable and resizable window
-• Light/dark mode support
+        <div class="help-section">
+          <h3>📝 USAGE</h3>
+          <ol>
+            <li>Visit any supported AI chat platform</li>
+            <li>Start a conversation with the AI</li>
+            <li>The floating window will automatically appear with the latest response</li>
+            <li>View both your question and the AI's answer in the floating window</li>
+            <li>Use previous/next buttons to navigate through conversation history</li>
+            <li>Drag the window by its header to reposition</li>
+            <li>Resize by dragging the corner handle</li>
+            <li>Use the close button to hide the window</li>
+          </ol>
+        </div>
 
-USAGE:
-1. Visit any supported AI chat platform
-2. Start a conversation with the AI
-3. The floating window will automatically appear with the latest response
-4. View both your question and the AI's answer in the floating window
-5. Use previous/next buttons to navigate through conversation history
-6. Drag the window by its header to reposition
-7. Resize by dragging the corner handle
-8. Use the close button to hide the window
+        <div class="help-section">
+          <h3>🌐 SUPPORTED PLATFORMS</h3>
+          <ul>
+            <li><strong>ChatGPT</strong> - chatgpt.com</li>
+            <li><strong>Claude</strong> - claude.ai</li>
+            <li><strong>Gemini</strong> - gemini.google.com</li>
+            <li><strong>DeepSeek</strong> - chat.deepseek.com</li>
+          </ul>
+        </div>
 
-SUPPORTED PLATFORMS:
-• ChatGPT (chatgpt.com)
-• Claude (claude.ai)
-• Gemini (gemini.google.com)
-• DeepSeek (chat.deepseek.com)
+        <div class="help-section">
+          <h3>🔧 TROUBLESHOOTING</h3>
+          <ul>
+            <li>If the extension doesn't work, try refreshing the page</li>
+            <li>Make sure you're on a supported platform</li>
+            <li>Check that the extension is enabled in Chrome</li>
+            <li>The floating window updates in real-time as AI generates responses</li>
+          </ul>
+        </div>
 
-TROUBLESHOOTING:
-• If the extension doesn't work, try refreshing the page
-• Make sure you're on a supported platform
-• Check that the extension is enabled in Chrome
-• The floating window updates in real-time as AI generates responses
-
-ABOUT:
-• Author: Simon Zeng
-• Contact: simon7108528@gmail.com
-• Source Code: https://github.com/SimonZeng7108/FloatingChat
-• Version: 1.0.0
-
-Feel free to report bugs, suggest features, or contribute to the project!
-    `.trim();
-
-    alert(helpText);
+        <div class="help-section">
+          <h3>📞 ABOUT</h3>
+          <p><strong>Author:</strong> Simon Zeng</p>
+          <p><strong>Contact:</strong> simon7108528@gmail.com</p>
+          <p><strong>Source Code:</strong> <a href="https://github.com/SimonZeng7108/FloatingChat" target="_blank">GitHub Repository</a></p>
+          <p><strong>Version:</strong> 1.0.0</p>
+          <p>Feel free to report bugs, suggest features, or contribute to the project!</p>
+        </div>
+      </div>
+    `;
+    
+    modal.innerHTML = helpContent;
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    
+    // Close handlers
+    const closeBtn = modal.querySelector('.help-close');
+    const closeModal = () => {
+      document.body.removeChild(overlay);
+    };
+    
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal();
+    });
+    
+    // Escape key handler
+    const escHandler = (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+        document.removeEventListener('keydown', escHandler);
+      }
+    };
+    document.addEventListener('keydown', escHandler);
   }
 
   // Keyboard shortcuts

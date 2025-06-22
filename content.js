@@ -1,38 +1,84 @@
-// FloatingChat - AI Platform Enhancer
-// Main content script for detecting platforms and managing floating answer windows
+/**
+ * FloatingChat - AI History Navigator
+ * 
+ * A Chrome extension that creates floating windows with complete Q&A history navigation,
+ * eliminating the need to scroll back through long AI conversations.
+ * 
+ * @author Simon Zeng
+ * @version 1.0.0
+ * @email simon7108528@gmail.com
+ * @repository https://github.com/SimonZeng7108/FloatingChat
+ * 
+ * Supported Platforms:
+ * - ChatGPT (chatgpt.com)
+ * - Claude (claude.ai) 
+ * - Gemini (gemini.google.com)
+ * - DeepSeek (chat.deepseek.com)
+ * 
+ * Key Features:
+ * - Automatic platform detection
+ * - Real-time content monitoring
+ * - Draggable and resizable floating window
+ * - Response navigation with history
+ * - Cross-platform compatibility
+ * - Error recovery and validation
+ * - Performance optimizations
+ */
 
+/**
+ * Main class managing the floating chat window functionality
+ * Handles platform detection, DOM monitoring, window creation, and user interactions
+ */
 class FloatingChatManager {
+  /**
+   * Initialize the FloatingChat manager with default settings and state
+   * Sets up platform detection, window positioning, response tracking, and timers
+   */
   constructor() {
-    this.platform = this.detectPlatform();
-    this.floatingWindow = null;
-    this.isEnabled = true;
-    this.lastAnswerElement = null;
-    this.lastAnswerContent = '';
-    this.lastAnswerHTML = '';
-    this.observers = [];
-    this.windowPosition = { x: 20, y: 20 };
-    this.windowSize = { width: 500, height: 650 };
+    // Core functionality
+    this.platform = this.detectPlatform();           // Current AI platform (chatgpt, claude, gemini, deepseek)
+    this.floatingWindow = null;                      // Reference to the floating window DOM element
+    this.isEnabled = true;                          // Whether the extension is active
     
-    // Enhanced floating window state
-    this.responses = []; // Store all responses
-    this.currentResponseIndex = -1;
-    this.contentObserver = null;
-    this.contentUpdateTimeout = null;
-    this.fastMonitoringTimer = null;
-    this.generationMonitoringTimer = null;
-    this.elementPollingTimer = null;
-    this.debugMode = false; // Set to true for detailed logging
-    this.windowCreated = false; // Track if window has been created
-    this.geminiUpdateTimeout = null; // Special timeout for Gemini updates
-    this.claudeUpdateTimeout = null; // Special timeout for Claude research mode
-    this.chatgptUpdateTimeout = null; // Special timeout for ChatGPT streaming
-    this.lastValidationTime = 0; // Track validation frequency
-    this.saveSettingsTimeout = null; // Debounce settings saves
-    this.historyCheckTimer = null; // Timer for checking missed responses
+    // Content tracking
+    this.lastAnswerElement = null;                  // Last detected answer DOM element
+    this.lastAnswerContent = '';                    // Previous answer text content
+    this.lastAnswerHTML = '';                       // Previous answer HTML content
+    this.responses = [];                            // Array storing all conversation responses
+    this.currentResponseIndex = -1;                // Index of currently displayed response
     
+    // DOM observation and monitoring
+    this.observers = [];                            // MutationObserver instances
+    this.contentObserver = null;                   // Observer for real-time content changes
+    this.contentUpdateTimeout = null;              // Debounce timer for content updates
+    this.fastMonitoringTimer = null;               // High-frequency monitoring timer
+    this.generationMonitoringTimer = null;         // Timer for active response generation
+    this.elementPollingTimer = null;               // Polling timer for specific elements
+    this.historyCheckTimer = null;                 // Timer for checking missed responses
+    
+    // Window state and positioning
+    this.windowPosition = { x: 20, y: 20 };       // Floating window position
+    this.windowSize = { width: 500, height: 650 }; // Floating window dimensions
+    this.windowCreated = false;                    // Flag tracking window creation
+    this.saveSettingsTimeout = null;              // Debounce timer for settings saves
+    
+    // Platform-specific optimization timers
+    this.geminiUpdateTimeout = null;               // Gemini placeholder handling
+    this.claudeUpdateTimeout = null;               // Claude research mode handling  
+    this.chatgptUpdateTimeout = null;              // ChatGPT streaming optimization
+    
+    // Debugging and validation
+    this.debugMode = false;                        // Enable detailed console logging
+    this.lastValidationTime = 0;                   // Timestamp of last response validation
+    
+    // Initialize the manager
     this.init();
   }
 
+  /**
+   * Detect which AI platform is currently active based on URL
+   * @returns {string|null} Platform identifier or null if unsupported
+   */
   detectPlatform() {
     const hostname = window.location.hostname;
     const url = window.location.href;
@@ -50,6 +96,11 @@ class FloatingChatManager {
     return null;
   }
 
+  /**
+   * Initialize the extension manager
+   * Loads settings, cleans up previous sessions, and starts monitoring
+   * @returns {Promise<void>}
+   */
   async init() {
     if (!this.platform) {
       console.log('FloatingChat: Unsupported platform');
@@ -58,7 +109,7 @@ class FloatingChatManager {
 
     console.log(`FloatingChat: Initializing for ${this.platform}`);
     
-    // Load saved settings
+    // Load saved settings from Chrome storage
     await this.loadSettings();
     
     // Clear any invalid stored responses from previous sessions
