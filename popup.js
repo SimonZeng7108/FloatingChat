@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // Load scroll prevention setting
   
-      
+
       // Get extension status from content script
       await getExtensionStatus();
       
@@ -200,7 +200,13 @@ TROUBLESHOOTING:
 • Check that the extension is enabled in Chrome
 • The floating window updates in real-time as AI generates responses
 
-Version 1.0.0
+ABOUT:
+• Author: Simon Zeng
+• Contact: simon7108528@gmail.com
+• Source Code: https://github.com/SimonZeng7108/FloatingChat
+• Version: 1.0.0
+
+Feel free to report bugs, suggest features, or contribute to the project!
     `.trim();
 
     alert(helpText);

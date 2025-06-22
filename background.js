@@ -10,7 +10,7 @@ chrome.runtime.onInstalled.addListener((details) => {
     chrome.storage.sync.set({
       floatingChatEnabled: true,
       windowPosition: { x: 20, y: 20 },
-      windowSize: { width: 400, height: 500 }
+      windowSize: { width: 500, height: 650 }
     });
   }
 });

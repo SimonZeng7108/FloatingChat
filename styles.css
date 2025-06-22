@@ -61,22 +61,63 @@ html[data-theme="dark"] .floating-chat-window.platform-chatgpt,
   color: #ffffff;
 }
 
-/* Animation for new content */
+/* Visual feedback for new content - subtle glow only */
 .floating-chat-window.new-content {
-  transform: scale(1.02);
-  box-shadow: 0 15px 40px rgba(0, 100, 255, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 100, 255, 0.15);
 }
 
-/* Real-time update indicator */
+/* Real-time update indicators */
 .floating-chat-window.updating {
   border-left: 3px solid #10b981;
   transition: border-left 0.2s ease;
+}
+
+.floating-chat-window.major-update {
+  border-left: 4px solid #f59e0b;
+  box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
+  transition: all 0.3s ease;
+}
+
+.floating-chat-window.completed {
+  border-left: 4px solid #059669;
+  box-shadow: 0 10px 30px rgba(5, 150, 105, 0.25);
+  transition: all 0.5s ease;
 }
 
 @media (prefers-color-scheme: dark) {
   .floating-chat-window.updating {
     border-left-color: #34d399;
   }
+  
+  .floating-chat-window.major-update {
+    border-left-color: #fbbf24;
+    box-shadow: 0 10px 30px rgba(251, 191, 36, 0.2);
+  }
+  
+  .floating-chat-window.completed {
+    border-left-color: #10b981;
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.25);
+  }
+}
+
+html[data-theme="dark"] .floating-chat-window.updating,
+[data-theme="dark"] .floating-chat-window.updating,
+.dark .floating-chat-window.updating {
+  border-left-color: #34d399;
+}
+
+html[data-theme="dark"] .floating-chat-window.major-update,
+[data-theme="dark"] .floating-chat-window.major-update,
+.dark .floating-chat-window.major-update {
+  border-left-color: #fbbf24;
+  box-shadow: 0 10px 30px rgba(251, 191, 36, 0.2);
+}
+
+html[data-theme="dark"] .floating-chat-window.completed,
+[data-theme="dark"] .floating-chat-window.completed,
+.dark .floating-chat-window.completed {
+  border-left-color: #10b981;
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.25);
 }
 
 
@@ -232,10 +273,34 @@ html[data-theme="dark"] .response-counter,
 
 .close-btn {
   background: #ef4444;
+  position: relative;
+  font-size: 0; /* Hide the × character */
 }
 
 .close-btn:hover {
   background: #dc2626;
+}
+
+/* Create crisp CSS-only close icon */
+.close-btn::before,
+.close-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 1.5px;
+  background: white;
+  border-radius: 1px;
+  transform-origin: center;
+}
+
+.close-btn::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.close-btn::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 .floating-chat-content {
@@ -339,23 +404,35 @@ html[data-theme="dark"] .floating-chat-placeholder,
 .floating-content h4, .floating-content h5, .floating-content h6 {
   margin: 16px 0 8px 0;
   font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.4;
+  color: inherit;
 }
 
-.floating-content h1 { font-size: 1.5em; }
-.floating-content h2 { font-size: 1.3em; }
-.floating-content h3 { font-size: 1.1em; }
+.floating-content h1 { font-size: 18px; }
+.floating-content h2 { font-size: 16px; }
+.floating-content h3 { font-size: 15px; }
+.floating-content h4 { font-size: 14px; }
+.floating-content h5 { font-size: 14px; }
+.floating-content h6 { font-size: 14px; }
 
 .floating-content p {
   margin: 8px 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: inherit;
 }
 
 .floating-content ul, .floating-content ol {
   margin: 8px 0;
   padding-left: 20px;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .floating-content li {
   margin: 4px 0;
+  color: inherit;
 }
 
 .floating-content code {
@@ -511,6 +588,25 @@ html[data-theme="dark"] .floating-content a,
   transition: all 0.2s ease;
 }
 
+/* Disable transitions during dragging/resizing for better performance */
+.floating-chat-window.dragging,
+.floating-chat-window.resizing,
+.floating-chat-window.dragging *,
+.floating-chat-window.resizing * {
+  transition: none !important;
+}
+
+/* Visual feedback during interactions */
+.floating-chat-window.dragging {
+  cursor: grabbing !important;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25) !important;
+  transform-origin: center;
+}
+
+.floating-chat-window.resizing {
+  cursor: nw-resize !important;
+}
+
 /* Hide unwanted elements from cloned content */
 .floating-content button,
 .floating-content .copy-button,
@@ -519,10 +615,36 @@ html[data-theme="dark"] .floating-content a,
   display: none !important;
 }
 
-/* Ensure text is readable */
+/* Ensure text is readable and consistent typography */
 .floating-content {
   word-wrap: break-word;
   overflow-wrap: break-word;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  color: inherit;
+}
+
+/* Reset any inherited styles that might interfere */
+.floating-content * {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+/* Override specific elements that need different sizes */
+.floating-content h1,
+.floating-content h2,
+.floating-content h3,
+.floating-content h4,
+.floating-content h5,
+.floating-content h6 {
+  font-size: revert !important;
+}
+
+.floating-content code {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+  font-size: 13px !important;
 }
 
 /* Focus states for accessibility */
@@ -543,89 +665,316 @@ html[data-theme="dark"] .floating-content a,
 }
 
 .question-container {
-  background: rgba(59, 130, 246, 0.05);
-  border-left: 3px solid rgba(59, 130, 246, 0.3);
-  padding: 12px 16px;
-  margin-bottom: 0;
-  border-radius: 8px 8px 0 0;
+  background: transparent !important;
+  border-left: 3px solid rgba(59, 130, 246, 0.4) !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  padding: 12px 16px !important;
+  margin: 0 !important;
+  border-radius: 6px 6px 0 0 !important;
+  box-shadow: none !important;
 }
 
 .question-container .floating-content {
-  color: rgba(59, 130, 246, 0.9);
-  font-weight: 500;
+  color: #374151 !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .qa-separator {
   height: 1px;
-  background: #e5e7eb;
+  background: rgba(0, 0, 0, 0.1);
   margin: 0;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .answer-container {
-  background: rgba(16, 163, 127, 0.03);
-  border-left: 3px solid rgba(16, 163, 127, 0.3);
-  padding: 12px 16px;
-  margin-top: 0;
-  border-radius: 0 0 8px 8px;
+  background: transparent !important;
+  border-left: 3px solid rgba(16, 163, 127, 0.4) !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  padding: 12px 16px !important;
+  margin: 0 !important;
+  border-radius: 0 0 6px 6px !important;
+  box-shadow: none !important;
 }
 
 .answer-container .floating-content {
-  color: #374151;
+  color: #374151 !important;
+  font-weight: 400 !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 @media (prefers-color-scheme: dark) {
   .question-container {
-    background: rgba(59, 130, 246, 0.1);
-    border-left-color: rgba(59, 130, 246, 0.4);
+    background: transparent !important;
+    border-left-color: rgba(96, 165, 250, 0.5) !important;
   }
   
   .question-container .floating-content {
-    color: rgba(96, 165, 250, 0.9);
+    color: #f9fafb !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    background: transparent !important;
   }
   
   .qa-separator {
-    background: #4b5563;
+    background: rgba(255, 255, 255, 0.15) !important;
   }
   
   .answer-container {
-    background: rgba(16, 163, 127, 0.08);
-    border-left-color: rgba(16, 163, 127, 0.4);
+    background: transparent !important;
+    border-left-color: rgba(52, 211, 153, 0.5) !important;
   }
   
   .answer-container .floating-content {
-    color: #d1d5db;
+    color: #e5e7eb !important;
+    font-weight: 400 !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    background: transparent !important;
   }
 }
 
 html[data-theme="dark"] .question-container,
 [data-theme="dark"] .question-container,
 .dark .question-container {
-  background: rgba(59, 130, 246, 0.1);
-  border-left-color: rgba(59, 130, 246, 0.4);
+  background: transparent !important;
+  border-left-color: rgba(96, 165, 250, 0.5) !important;
 }
 
 html[data-theme="dark"] .question-container .floating-content,
 [data-theme="dark"] .question-container .floating-content,
 .dark .question-container .floating-content {
-  color: rgba(96, 165, 250, 0.9);
+  color: #f9fafb !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  background: transparent !important;
 }
 
 html[data-theme="dark"] .qa-separator,
 [data-theme="dark"] .qa-separator,
 .dark .qa-separator {
-  background: #4b5563;
+  background: rgba(255, 255, 255, 0.15) !important;
 }
 
 html[data-theme="dark"] .answer-container,
 [data-theme="dark"] .answer-container,
 .dark .answer-container {
-  background: rgba(16, 163, 127, 0.08);
-  border-left-color: rgba(16, 163, 127, 0.4);
+  background: transparent !important;
+  border-left-color: rgba(52, 211, 153, 0.5) !important;
 }
 
 html[data-theme="dark"] .answer-container .floating-content,
 [data-theme="dark"] .answer-container .floating-content,
 .dark .answer-container .floating-content {
-  color: #d1d5db;
+  color: #e5e7eb !important;
+  font-weight: 400 !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  background: transparent !important;
 } 
+
+/* Image and media support in floating window */
+.floating-content img {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  margin: 10px 0 !important;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.floating-content img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-content img {
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+  }
+  
+  .floating-content img:hover {
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
+  }
+}
+
+html[data-theme="dark"] .floating-content img,
+[data-theme="dark"] .floating-content img,
+.dark .floating-content img {
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+}
+
+html[data-theme="dark"] .floating-content img:hover,
+[data-theme="dark"] .floating-content img:hover,
+.dark .floating-content img:hover {
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
+}
+
+/* Video support */
+.floating-content video {
+  max-width: 100% !important;
+  height: auto !important;
+  margin: 10px 0 !important;
+  border-radius: 8px;
+}
+
+/* SVG support */
+.floating-content svg {
+  max-width: 100% !important;
+  height: auto !important;
+  margin: 10px 0 !important;
+}
+
+/* Enhanced table support for floating window */
+.floating-content table {
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  display: block !important;
+  white-space: nowrap !important;
+  margin: 10px 0 !important;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.floating-content table th,
+.floating-content table td {
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.floating-content table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-content table th,
+  .floating-content table td {
+    border-color: #444;
+  }
+  
+  .floating-content table th {
+    background-color: #333;
+  }
+}
+
+html[data-theme="dark"] .floating-content table th,
+[data-theme="dark"] .floating-content table th,
+.dark .floating-content table th {
+  background-color: #333;
+  border-color: #444;
+}
+
+html[data-theme="dark"] .floating-content table td,
+[data-theme="dark"] .floating-content table td,
+.dark .floating-content table td {
+  border-color: #444;
+}
+
+/* Image placeholder for failed loads */
+.floating-content .image-placeholder {
+  padding: 20px !important;
+  background: #f0f0f0 !important;
+  border: 1px dashed #ccc !important;
+  text-align: center !important;
+  color: #666 !important;
+  margin: 10px 0 !important;
+  border-radius: 8px;
+  font-style: italic;
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-content .image-placeholder {
+    background: #333 !important;
+    border-color: #555 !important;
+    color: #aaa !important;
+  }
+}
+
+html[data-theme="dark"] .floating-content .image-placeholder,
+[data-theme="dark"] .floating-content .image-placeholder,
+.dark .floating-content .image-placeholder {
+  background: #333 !important;
+  border-color: #555 !important;
+  color: #aaa !important;
+}
+
+/* Enhanced code blocks with better formatting */
+.floating-content pre {
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  word-wrap: break-word !important;
+  white-space: pre-wrap !important;
+  margin: 10px 0 !important;
+}
+
+.floating-content code {
+  word-wrap: break-word !important;
+  max-width: 100% !important;
+}
+
+/* Iframe support */
+.floating-content iframe {
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 200px !important;
+  margin: 10px 0 !important;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-content iframe {
+    border-color: #444;
+  }
+}
+
+html[data-theme="dark"] .floating-content iframe,
+[data-theme="dark"] .floating-content iframe,
+.dark .floating-content iframe {
+  border-color: #444;
+}
+
+/* Error message styling */
+.floating-content .error-message {
+  padding: 16px;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
+  text-align: center;
+  margin: 8px 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .floating-content .error-message {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+  }
+}
+
+html[data-theme="dark"] .floating-content .error-message,
+[data-theme="dark"] .floating-content .error-message,
+.dark .floating-content .error-message {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
